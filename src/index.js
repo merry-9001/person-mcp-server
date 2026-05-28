@@ -4,10 +4,11 @@ import { startHttpServer } from './http/server.js';
 import { startStdioServer } from './mcp/server.js';
 import { SonarClient } from './sonar/client.js';
 import { createTools } from './tools/definitions.js';
+import { createSentryTools } from './tools/sentryDefinitions.js';
 
 const config = getConfig();
 const client = new SonarClient(config);
-const tools = createTools(client, config);
+const tools = [...createTools(client, config), ...createSentryTools(config)];
 
 if (config.transport === 'http') {
   startHttpServer(tools, config);

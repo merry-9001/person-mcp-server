@@ -40,8 +40,14 @@ $env:MCP_TRANSPORT="http"; npm start
 | `HTTP_PORT` | Express 服务端口 | `3030` |
 | `DEFAULT_PAGE_SIZE` | 默认分页大小 | `50` |
 | `SOURCE_CONTEXT_LINES` | 源码上下文行数 | `8` |
+| `SENTRY_AUTH_TOKEN` | Sentry Token（可选） | - |
+| `SENTRY_ORG` | Sentry 组织 slug（可选） | - |
+| `SENTRY_PROJECT` | 默认项目 slug（可选） | - |
+| `SENTRY_URL` | Sentry 地址 | `https://sentry.io` |
 
-## 13 个 MCP Tools
+## MCP Tools
+
+### SonarQube（14 个）
 
 | Tool | 能力 |
 | --- | --- |
@@ -58,6 +64,22 @@ $env:MCP_TRANSPORT="http"; npm start
 | `sonar_search_security_hotspots` | 检索安全热点 |
 | `sonar_get_security_hotspot` | 获取安全热点详情 |
 | `sonar_get_duplications` | 查询重复代码并进行 duplication block 二次解码 |
+| `sonar_generate_report` | 生成项目质量 Markdown 报告（指标 + 问题列表 + 修复顺序指引） |
+
+### Sentry（可选，配置后启用 4 个）
+
+| Tool | 能力 |
+| --- | --- |
+| `sentry_search_issues` | 搜索未解决等 Sentry Issue（CSV） |
+| `sentry_get_issue` | 获取单条 Issue JSON |
+| `sentry_get_issue_context` | Issue + 最新事件堆栈 + AI 修复 Markdown |
+| `sentry_generate_report` | 生成 Sentry 告警 Markdown 报告 |
+
+详见 [SENTRY_SETUP.md](./SENTRY_SETUP.md)。
+
+## 其他项目一键修复
+
+将 `templates/consumer-project/` 复制到业务项目后，在 Cursor 打开业务项目并启用 MCP，使用 Skill `sonar-one-click-fix` 即可走「报告 → 逐条修复」流程。详见 [CROSS_PROJECT_SETUP.md](./CROSS_PROJECT_SETUP.md)。
 
 ## 输出协议
 
@@ -105,7 +127,7 @@ curl -X POST http://localhost:3030/tools/sonar_search_issues \
 典型 AI 助手工作流：
 
 1. `sonar_search_projects` 找到项目。
-2. `sonar_search_issues` 批量扫描问题。
+2. `sonar_generate_report` 或 `sonar_search_issues` 获取问题概览。
 3. `sonar_get_issue_context` 聚合源码、规则和修复 Prompt。
 4. AI 修改本地代码。
 5. `sonar_assign_issue` 指派责任人。

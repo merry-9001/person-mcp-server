@@ -1,0 +1,5 @@
+sonar.projectKey=my-app
+sonar.projectName=My App
+sonar.sources=src
+sonar.host.url=http://localhost:9000
+sonar.token=your_sonarqube_token

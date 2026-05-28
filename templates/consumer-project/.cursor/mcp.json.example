@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "sonarqube-fixer": {
+      "command": "node",
+      "args": ["D:/学习/person/mcp-server/src/index.js"],
+      "env": {
+        "SONARQUBE_URL": "http://localhost:9000",
+        "SONARQUBE_TOKEN": "your_sonarqube_token",
+        "SENTRY_URL": "https://sentry.io",
+        "SENTRY_AUTH_TOKEN": "your_sentry_auth_token",
+        "SENTRY_ORG": "your-org-slug",
+        "SENTRY_PROJECT": "your-project-slug"
+      }
+    }
+  }
+}

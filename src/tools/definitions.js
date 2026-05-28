@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { buildIssuePrompt } from '../context/buildIssuePrompt.js';
+import {
+  buildProjectReport,
+  facetsToMap,
+  sortIssuesBySeverity
+} from '../context/buildProjectReport.js';
 import { decodeDuplications } from '../duplications/decode.js';
 import { csvResult, jsonResult, markdownResult } from '../formatters.js';
 
@@ -253,6 +258,71 @@ export function createTools(client, config) {
           files: data.files || [],
           duplications: decodeDuplications(data)
         });
+      }
+    },
+    {
+      name: 'sonar_generate_report',
+      description:
+        'Generate a Markdown quality report for a SonarQube project: metrics, issue facets, prioritized fix list, and AI repair instructions. Use before batch fixing in Cursor or other MCP clients.',
+      schema: {
+        projectKey: z.string(),
+        types: optionalStringArray,
+        severities: optionalStringArray,
+        statuses: optionalStringArray,
+        resolved: z.boolean().optional(),
+        maxIssues: z.number().int().positive().max(200).optional(),
+        pageSize: z.number().int().positive().max(500).optional()
+      },
+      handler: async (input) => {
+        const projectKey = input.projectKey;
+        const maxIssues = input.maxIssues ?? 30;
+        const pageSize = input.pageSize ?? Math.min(config.defaultPageSize, 500);
+        const metricKeys = [
+          'ncloc',
+          'bugs',
+          'vulnerabilities',
+          'code_smells',
+          'security_hotspots',
+          'coverage',
+          'duplicated_lines_density',
+          'reliability_rating',
+          'security_rating',
+          'sqale_rating',
+          'alert_status'
+        ].join(',');
+
+        const [projectData, measuresData, issuesData] = await Promise.all([
+          client.get('/api/components/show', { component: projectKey }),
+          client.get('/api/measures/component', { component: projectKey, metricKeys }),
+          client.get('/api/issues/search', {
+            projects: projectKey,
+            types: input.types,
+            severities: input.severities,
+            statuses: input.statuses,
+            resolved: input.resolved ?? false,
+            p: 1,
+            ps: pageSize,
+            facets: 'severities,types,statuses',
+            additionalFields: '_all'
+          })
+        ]);
+
+        const issues = sortIssuesBySeverity((issuesData.issues || []).map(issueSummary));
+
+        const markdown = buildProjectReport({
+          project: projectData.component,
+          metrics: measuresData.component?.measures || [],
+          issues,
+          facets: facetsToMap(issuesData.facets),
+          totalIssues: issuesData.total ?? issuesData.paging?.total ?? issues.length,
+          options: {
+            projectKey,
+            maxIssues,
+            sonarUrl: config.sonarUrl
+          }
+        });
+
+        return markdownResult(markdown);
       }
     }
   ];

@@ -1,7 +1,7 @@
 {
   "name": "sonarqube-mcp-fixer",
   "version": "0.1.0",
-  "description": "MCP Server for SonarQube issue scanning, rule understanding, code context aggregation, and AI-assisted remediation workflows.",
+  "description": "MCP Server for SonarQube and Sentry: reports, fix context aggregation, and AI-assisted remediation workflows.",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -16,6 +16,7 @@
   "keywords": [
     "mcp",
     "sonarqube",
+    "sentry",
     "code-quality",
     "llm",
     "ai-fix"
