@@ -17,7 +17,17 @@ description: >-
 
 ### 1. 生成报告（按需）
 
-**Sonar**（有静态扫描时）：
+**统一交叉报告（Sonar + Sentry 均已配置时优先）**：
+
+```json
+{ "projectKey": "<sonar.projectKey>", "maxIssues": 30, "lineTolerance": 5 }
+```
+
+工具：`quality_generate_unified_report` → 保存 `.quality/unified-report.md`
+
+报告会按归一化路径 + 行号邻近度找出「交叉命中」（同一文件的静态 Issue 与线上告警），优先合并修复。
+
+**Sonar 单独**（仅静态扫描时）：
 
 ```json
 { "projectKey": "<sonar.projectKey>", "maxIssues": 30, "resolved": false }
@@ -25,7 +35,7 @@ description: >-
 
 工具：`sonar_generate_report` → 保存 `.sonar/report.md`
 
-**Sentry**（MCP 已配置 Sentry 时）：
+**Sentry 单独**（MCP 已配置 Sentry 时）：
 
 ```json
 { "maxIssues": 20 }
@@ -33,7 +43,7 @@ description: >-
 
 工具：`sentry_generate_report` → 保存 `.sentry/report.md`
 
-向用户汇总：Sonar Critical/Blocker 数量、Sentry fatal/error 数量、各前 3 条。
+向用户汇总：交叉命中数量、Sonar Critical/Blocker 数量、Sentry fatal/error 数量、各前 3 条。
 
 ### 2. 逐条修复
 
@@ -42,7 +52,7 @@ description: >-
 | Sonar | `sonar_get_issue_context` | 规则 + Sonar 源码片段 |
 | Sentry | `sentry_get_issue_context` | 堆栈 + 运行时信息 |
 
-优先顺序建议：**Sentry fatal/error（线上）** → **Sonar Blocker/Critical（静态）** → 其余。
+优先顺序建议：**交叉命中（同文件静态+线上）** → **Sentry fatal/error** → **Sonar Blocker/Critical** → 其余。
 
 每条：读上下文 → 最小改动修本地文件 → 批量后跑测试。
 

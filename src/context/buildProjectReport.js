@@ -113,7 +113,7 @@ function escapeCell(text = '') {
 
 const SEVERITY_ORDER = ['BLOCKER', 'CRITICAL', 'MAJOR', 'MINOR', 'INFO'];
 
-function severityRank(severity) {
+export function severityRank(severity) {
   const index = SEVERITY_ORDER.indexOf(severity);
   return index === -1 ? 99 : index + 1;
 }
